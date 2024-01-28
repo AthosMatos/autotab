@@ -1,0 +1,10 @@
+asyncio
+websockets
+numpy
+scipy
+librosa
+keras
+midi2audio
+midiutil
+tensorflow
+soundfile

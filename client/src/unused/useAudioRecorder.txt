@@ -1,0 +1,137 @@
+/* import React, { useState, useEffect, useRef, createContext, useContext } from 'react';
+
+interface AudioRecoderContextI {
+    startRecording: () => void;
+    stopRecording: () => void;
+    toogleSendAudio: () => void;
+    isRecording: boolean;
+    countDown: number;
+    audioForServer?: Float32Array
+    timeElapsed: {
+        minutes: number;
+        seconds: number;
+        milliseconds: number;
+    }
+    sendAudio: boolean
+}
+const AudioRecoderContext = createContext<AudioRecoderContextI>({} as any);
+
+export const AudioRecorderProvider = ({ children }: { children: any }) => {
+    const [isRecording, setIsRecording] = useState(false);
+    const [timeElapsed, setTimeElapsed] = useState<{
+        minutes: number;
+        seconds: number;
+        milliseconds: number;
+    }>({ minutes: 0, seconds: 0, milliseconds: 0 })
+
+    const audioContext = useRef<AudioContext>();
+    const workletNode = useRef<AudioWorkletNode>();
+    const mediaStreamSource = useRef<MediaStreamAudioSourceNode>();
+    const stream = useRef<MediaStream>()
+
+    const [audioForServer, setAudioForServer] = useState<Float32Array>();
+    const [startRecord, setStartRecord] = useState(false)
+    const [countDown, setCountDown] = useState<number>(0)
+    const [sendAudio, setSendAudio] = useState(false)
+
+    const startRecording = async () => {
+        let countDown = 4
+        const interval = setInterval(() => {
+            countDown--
+            setCountDown(countDown)
+            if (countDown <= 0) {
+                setCountDown(0)
+                clearInterval(interval)
+                setStartRecord(true)
+            }
+        }, 1000)
+    };
+
+    useEffect(() => {
+        async function record() {
+            stream.current = await navigator.mediaDevices.getUserMedia({
+                audio: {
+                    autoGainControl: false,
+                    noiseSuppression: false,
+                }
+            });
+            audioContext.current = new AudioContext({
+                latencyHint: "interactive",
+            });
+            await audioContext.current.audioWorklet.addModule('./recorder-processor.js'); // Path to your processor file
+
+            workletNode.current = new AudioWorkletNode(audioContext.current, 'recorder-processor');
+
+            mediaStreamSource.current = audioContext.current.createMediaStreamSource(stream.current);
+            mediaStreamSource.current.connect(workletNode.current).connect(audioContext.current.destination);
+
+            setIsRecording(true);
+        }
+        if (startRecord) record()
+
+    }, [startRecord])
+
+
+    useEffect(() => {
+        if (workletNode.current) {
+            workletNode.current.port.onmessage = (event) => {
+                const elapsed = event.data.currentTime;
+                //update at every 300ms
+
+                setTimeElapsed({
+                    minutes: Math.floor(elapsed / 60),
+                    seconds: Math.floor(elapsed % 60),
+                    milliseconds: Math.floor((elapsed % 1) * 1000),
+                });
+
+
+                setAudioForServer(event.data.audioData)
+            };
+        }
+    }, [isRecording])
+
+    function toogleSendAudio() {
+        setSendAudio(!sendAudio)
+    }
+
+    const stopRecording = () => {
+        if (workletNode.current) {
+
+            stream.current?.getAudioTracks().forEach(track => track.stop());
+            mediaStreamSource.current?.disconnect();
+            workletNode.current?.disconnect();
+            audioContext.current?.close();
+            setIsRecording(false);
+            setStartRecord(false)
+            setSendAudio(true)
+        };
+    }
+
+    return (
+        <AudioRecoderContext.Provider value={{
+            startRecording,
+            stopRecording,
+            toogleSendAudio,
+            isRecording,
+            countDown,
+            audioForServer,
+            timeElapsed,
+            sendAudio
+        }}>
+            {children}
+        </AudioRecoderContext.Provider>
+    );
+};
+
+export const useAudioRecoderContext = () => {
+    const context = useContext(AudioRecoderContext);
+    if (!context) {
+        throw new Error(
+            "useSpecificContext must be used within a SpecificProvider"
+        );
+    }
+    return context;
+}
+
+
+ */

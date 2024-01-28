@@ -1,0 +1,174 @@
+import { useEffect, useRef, useState } from "react"
+import { useWebSocket } from "../../contexts/useWebSocket"
+import { AudioEventAnalyser } from "../../utils/path"
+import useWindowResize from "../../hooks/useWindowResize"
+import { useNotesFretViewContext } from "../../contexts/NotesFretViewContext/useNotesFretViewContext"
+import NotesFretView from "../../components/NotesFretView"
+import { usePlaybackContext } from "../../contexts/PlaybackContext/usePlaybackContext"
+import { PlayButton } from "../../components/Buttons/Play"
+import { PauseButton } from "../../components/Buttons/Stop"
+import { ShowButton } from "../../components/Buttons/Show"
+import { LoopButton } from "../../components/Buttons/Loop"
+import { PredictButtonsContainer } from "../../components/Buttons"
+import useAudioRecorder from "../../hooks/useAudioRecorder"
+
+const SeqTest3 = [
+    "D6",
+    ["D3", "A3", "D4", "F#4"],//DMAJOR
+    "D4", "D4",
+    ["A2", "E3", "A3", "C#4", "E4"],//AMAJOR 
+    ["F2", "C3", "F3", "A3", "C4", "F4"], //FMAJOR
+    "F4", "C3", "C3",
+    ["G4", "A4", "B4"],
+]
+
+
+
+const MainPage = () => {
+    const windowSize = useWindowResize(0.9)
+    const { allNotesFromFrets, frets, updateActivatedChords } = useNotesFretViewContext()
+    const chords = AudioEventAnalyser(SeqTest3, allNotesFromFrets, frets)
+    const { updatePredictSpeed } = usePlaybackContext()
+    const { connect, isConnected, send } = useWebSocket()
+    const { audioRef, analyser, sampleRate, audioWave } = useAudioRecorder()
+    const canvasRef = useRef<HTMLCanvasElement>(null)
+    const [canvasContext, setCanvasContext] = useState<CanvasRenderingContext2D | null>(null)
+    //var fullAudioArr = new Uint8Array(0)
+    var fullAudioArr2 = new Float32Array(0)
+
+    useEffect(() => {
+        if (canvasRef.current) {
+            const canvas = canvasRef.current
+            const ctx = canvas.getContext('2d')
+            setCanvasContext(ctx)
+        }
+    }, [canvasRef.current])
+
+    useEffect(() => {
+        if (analyser && canvasContext) {
+            const secondsToCut = 1
+            const bufferLength = analyser.frequencyBinCount;
+            const interval = setInterval(() => {
+                //const dataArray = new Uint8Array(bufferLength);
+                const dataArray2 = new Float32Array(bufferLength);
+                //analyser.getByteTimeDomainData(dataArray);
+                analyser.getFloatTimeDomainData(dataArray2);
+                //fullAudioArr = new Uint8Array([...fullAudioArr, ...dataArray])
+                fullAudioArr2 = new Float32Array([...fullAudioArr2, ...dataArray2])
+                draw()
+
+                if (fullAudioArr2.length > (sampleRate * secondsToCut)) {
+                    //convert to -1 to 1
+                    /* const convertedArr: number[] = []
+
+                    fullAudioArr.forEach((value) => {
+                        const v = value / 128.0 - 1.0
+                        //if (v !== 0 && v !== 1) console.log(v)
+                        convertedArr.push(value / 128.0 - 1.0)
+
+                    }) */
+                    const convertedAr: number[] = []
+                    fullAudioArr2.forEach((value, index) => {
+                        convertedAr.push(value)
+                    })
+                    const step = convertedAr.length / 4
+                    let start = 0
+                    let end = step
+                    for (let i = 0; i < 4; i++) {
+                        send({ data: convertedAr.slice(start, end) })
+                        start += step
+                        end += step
+                    }
+
+                    //console.log(convertedAr)
+                    //fullAudioArr = new Uint8Array(0)
+                    fullAudioArr2 = new Float32Array(0)
+                    clearInterval(interval)
+                }
+            }, 10)
+        }
+    }, [analyser, canvasContext])
+
+
+    function draw() {
+        if (!canvasContext || !canvasRef.current) return
+        const canvas = canvasRef.current
+        const ctx = canvasContext
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = 'rgb(153, 153, 153)'
+        ctx.fillRect(0, 0, canvas.width, canvas.height)
+
+
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = "rgb(0, 0, 0)";
+
+        ctx.beginPath();
+        const dataViewAmount = sampleRate / 4
+        const sliceWidth = canvas.width / dataViewAmount;
+        let x = 0;
+        const step = fullAudioArr2.length > dataViewAmount ? Math.floor(fullAudioArr2.length / dataViewAmount) : 1
+
+        for (let i = 0; i < fullAudioArr2.length; i += step) {
+            const v = fullAudioArr2[i]
+            const y = v * (canvas.height / 2);
+
+            if (i === 0) {
+                ctx.moveTo(x, y);
+            } else {
+                ctx.lineTo(x, y);
+            }
+
+            x += sliceWidth;
+        }
+        ctx.lineTo(canvas.width, canvas.height / 2);
+        ctx.stroke();
+    }
+
+
+    useEffect(() => {
+        connect('ws://localhost:50007')
+
+        updatePredictSpeed(500)
+        updateActivatedChords(chords.map((posi) => {
+            const notes = posi.map((posi) => {
+                return posi.note
+            })
+            return {
+                notes: notes,
+                indexes: posi.map((posi) => {
+                    const pos = posi.pos
+                    return {
+                        string: pos.string,
+                        fret: pos.fret
+                    }
+                })
+            }
+        }))
+    }, [])
+
+    /* useEffect(() => {
+        isConnected && send({ data: 'chords' })
+    }, [isConnected]) */
+
+    return (
+        <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+        }}>
+            <audio ref={audioRef} controls />
+
+            <NotesFretView windowSize={windowSize} />
+            <PredictButtonsContainer>
+                <PlayButton />
+                <ShowButton />
+                <LoopButton />
+                <PauseButton />
+            </PredictButtonsContainer>
+            <canvas ref={canvasRef} id="canvas" width="1600" height="200" />
+        </div>
+
+    )
+}
+
+export default MainPage

@@ -1,0 +1,151 @@
+import { useEffect, useRef, useState } from "react"
+import { useWebSocket } from "../../contexts/useWebSocket"
+import { AudioEventAnalyser } from "../../utils/path"
+import useWindowResize from "../../hooks/useWindowResize"
+import { useNotesFretViewContext } from "../../contexts/NotesFretViewContext/useNotesFretViewContext"
+import NotesFretView from "../../components/NotesFretView"
+import { usePlaybackContext } from "../../contexts/PlaybackContext/usePlaybackContext"
+import { PlayButton } from "../../components/Buttons/Play"
+import { PauseButton } from "../../components/Buttons/Stop"
+import { ShowButton } from "../../components/Buttons/Show"
+import { LoopButton } from "../../components/Buttons/Loop"
+import { PredictButtonsContainer } from "../../components/Buttons"
+
+const SeqTest3 = [
+    "D6",
+    ["D3", "A3", "D4", "F#4"],//DMAJOR
+    "D4", "D4",
+    ["A2", "E3", "A3", "C#4", "E4"],//AMAJOR 
+    ["F2", "C3", "F3", "A3", "C4", "F4"], //FMAJOR
+    "F4", "C3", "C3",
+    ["G4", "A4", "B4"],
+]
+
+
+interface AudioDataI {
+    blobObject: Blob | null,
+    startTime: number | null,
+}
+const MainPage = () => {
+    const windowSize = useWindowResize(0.9)
+    const { allNotesFromFrets, frets, updateActivatedChords } = useNotesFretViewContext()
+    const chords = AudioEventAnalyser(SeqTest3, allNotesFromFrets, frets)
+    const { updatePredictSpeed } = usePlaybackContext()
+    const { connect, isConnected, send } = useWebSocket()
+    const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder>();
+    let chunks: Blob[] = []
+    const [audioUrl, setAudioUrl] = useState<string>();
+
+    const startRecording = async () => {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+        //check supported mime types    
+        const mimeTypes = ["audio/mp4", "audio/webm", 'audio/wav'].filter((type) =>
+            MediaRecorder.isTypeSupported(type)
+        );
+        console.log(mimeTypes)
+        const mediaRecorderInstance = new MediaRecorder(stream, {
+            mimeType: mimeTypes[0],
+            audioBitsPerSecond: 128000,
+        });
+
+        mediaRecorderInstance.ondataavailable = (event) => {
+            if (event.data.size > 0) {
+                chunks.push(event.data);
+            }
+        };
+
+        mediaRecorderInstance.onstop = async () => {
+            const audioBlob = new Blob(chunks, { type: 'audio/wav' });
+            const audioUrl = URL.createObjectURL(audioBlob);
+            setAudioUrl(audioUrl);
+
+            // Convert the Blob to ArrayBuffer
+            const arrayBuffer = await audioBlob.arrayBuffer();
+
+            // Convert the ArrayBuffer to base64
+            const base64Data = btoa(String.fromCharCode.apply(null, Array.from(new Uint8Array(arrayBuffer))));
+
+            // Prepare the data object to send through WebSocket
+            const audioData = {
+                //startTime: recordedBlob.startTime,
+                base64Data: base64Data,
+            };
+
+            // Send the data through the WebSocket
+            // Replace 'your-websocket-server-url' with your actual WebSocket server URL
+            send({ data: base64Data })
+
+        };
+
+        setMediaRecorder(mediaRecorderInstance);
+        chunks = []
+        mediaRecorderInstance.start();
+    };
+
+    const stopRecording = () => {
+        if (mediaRecorder) {
+            mediaRecorder.stop();
+        }
+
+    };
+
+    const playAudio = () => {
+        if (audioUrl) {
+            const audio = new Audio(audioUrl);
+            audio.play();
+        }
+    };
+
+
+    useEffect(() => {
+        connect('ws://localhost:50007')
+
+        updatePredictSpeed(500)
+        updateActivatedChords(chords.map((posi) => {
+            const notes = posi.map((posi) => {
+                return posi.note
+            })
+            return {
+                notes: notes,
+                indexes: posi.map((posi) => {
+                    const pos = posi.pos
+                    return {
+                        string: pos.string,
+                        fret: pos.fret
+                    }
+                })
+            }
+        }))
+    }, [])
+
+    /* useEffect(() => {
+        isConnected && send({ data: 'chords' })
+    }, [isConnected]) */
+
+    return (
+        <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+        }}>
+
+            <button onClick={startRecording}>Start Recording</button>
+            <button onClick={stopRecording}>Stop Recording</button>
+            <button onClick={playAudio} disabled={!audioUrl}>
+                Play Audio
+            </button>
+
+            <NotesFretView windowSize={windowSize} />
+            <PredictButtonsContainer>
+                <PlayButton />
+                <ShowButton />
+                <LoopButton />
+                <PauseButton />
+            </PredictButtonsContainer>
+        </div>
+
+    )
+}
+
+export default MainPage
