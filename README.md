@@ -11,3 +11,6 @@
 ## Running
 * Windows - At the root /autotab folder run the "execute.bat" file
 * Other - Start the react project at the /client folder and run the "server.py" at the /server folder
+
+## About
+Dataset link - https://drive.google.com/drive/folders/1NQQJtMrtM6JdrB8MznYN2_0YIkImVnN4?usp=sharing
