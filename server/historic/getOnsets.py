@@ -61,7 +61,7 @@ def onsets(AUDIO, SR):
         sr=SR,
         hop_length=hop_length,
         units="time",
-        # backtrack=True,
+        backtrack=True,
     )
     return onset_sf
 

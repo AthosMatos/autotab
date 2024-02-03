@@ -178,26 +178,26 @@ def calculate_playability_distance(
     fret_j, fret_k, string_i, string_i2, options: dict, isChord=False
 ):
     fret_distance = abs(fret_k - fret_j)
-
-    if (fret_k - fret_j) < 0:
-        fret_distance += 5
-
     string_distance = abs(string_i2 - string_i)
-
+    
+    """ if (fret_k - fret_j) < 0:
+        fret_distance += abs(fret_k - fret_j) """
+        
+    if fret_k == 0:
+            fret_distance = 0
+   
+    
     confort_fret = 0
     slide_tolerance = 0
 
     if options["fret_confort"]:
-        confort_fret = abs(options["fret_confort"] - fret_k)
-    else:
-        if fret_k == 0:
-            fret_distance = 0
+        confort_fret = abs(options["fret_confort"] - fret_k)       
 
     if options["slide_tolerance"] and not isChord:
         slide_tolerance = options["slide_tolerance"]
 
-    fret_distance = fret_distance + confort_fret - slide_tolerance
-    playability_distance = fret_distance + string_distance + 1  # / 100
+    fret_distance = (fret_distance + confort_fret) - slide_tolerance
+    playability_distance = fret_distance + string_distance + 1  
 
     return playability_distance
 
