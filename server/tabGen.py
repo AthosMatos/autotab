@@ -1,6 +1,5 @@
 import heapq
 from utils.notes import genNotes
-import json
 
 notes, str_notes = genNotes()  # TUNNING=["E2", "A2", "D3", "G3", "B3", "E4"]
 
