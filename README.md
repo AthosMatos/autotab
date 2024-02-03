@@ -17,6 +17,9 @@ an analytical guide on how to handle acoustic signals and generate data from the
 highlighting the limitations and shortcomings of the proposed architecture, thus enabling
 the creation of other musical transcription tools with better efficiency and capability.
 
+![AutoTabImage - Ooh la la - Faces](https://github.com/AthosMatos/autotab/assets/74662402/d1bac0b8-6406-487c-81ec-c2a3d48027a7)
+
+
 ## instalation
 * Node Js - https://nodejs.org/en/download/current
 * Python - https://www.python.org/downloads/
