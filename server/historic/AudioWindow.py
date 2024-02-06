@@ -140,8 +140,8 @@ def AWA(
 ):
     ONSETS_SEC, ONSETS_SR = ONSETS
     AUDIO_SECS = len(AUDIO) / SR
-    AUDIO_WIN_ACCOMULATE_LEN = int(0.1 * SR)
-    AUDIO_WIN_ACCOMULATE_LEN_SEC = 0.1  # 0.1 seconds
+    AUDIO_WIN_ACCOMULATE_LEN = int(0.4 * SR)
+    AUDIO_WIN_ACCOMULATE_LEN_SEC = 0.4  # 0.4 seconds
     """ The AUDIO_WIN_ACCOMULATE_LEN is the amount of audio that 
     will be acomulated over time with the new audio batches coming from the websocket"""
     MAX_AUDIO_WINDOW_SIZE = int(2.5 * SR)  # 2.5 seconds

@@ -2,8 +2,8 @@ import asyncio
 import websockets
 import numpy as np
 from utils.load_prepare import load
-from historic.getOnsets2 import get_onsets
-from historic.AWA2 import AWA
+from historic.getOnsets import get_onsets
+from historic.AudioWindow import AWA
 from historic.onsetToAudios import onsets_to_audio
 import json
 from scipy.io import wavfile
@@ -33,13 +33,13 @@ def predict(dataJson):
     MUSICTESTPATH = "output.wav"
     SR = 44100
     AUDIO, _ = load(MUSICTESTPATH, sample_rate=SR)
-    ONSET_TIMES = get_onsets(MUSICTESTPATH)
-    onsets_to_audio(AUDIO, ONSET_TIMES, SR)
+    ONSETS = get_onsets(MUSICTESTPATH)
+    onsets_to_audio(AUDIO, ONSETS[0], SR)
 
     preds = AWA(
         AUDIO,
         SR,
-        ONSET_TIMES,
+        ONSETS,
         MaxSteps=None,
         model=dataJson["model"],
     )
@@ -119,7 +119,7 @@ async def handle_websocket(websocket, path):
         print("WebSocket connection closed.")
 
 
-start_server = websockets.serve(handle_websocket, "0.0.0.0", 80, max_size=None)
-
+#start_server = websockets.serve(handle_websocket, "0.0.0.0", 80, max_size=None)
+start_server = websockets.serve(handle_websocket, "0.0.0.0", 8080, max_size=None)
 asyncio.get_event_loop().run_until_complete(start_server)
 asyncio.get_event_loop().run_forever()
