@@ -1,35 +1,45 @@
 import numpy as np
-from utils.rmsNorm import rmsNorm
 import librosa
 
 
 def onsets(AUDIO, SR):
-    ad_peak = rmsNorm(AUDIO, -50)
-    D = np.abs(librosa.cqt(y=ad_peak, sr=SR))
-    D = librosa.amplitude_to_db(D, ref=np.max)
-    o_env = librosa.onset.onset_strength(sr=SR, S=D)
-    onset_detect = librosa.onset.onset_detect(onset_envelope=o_env, sr=SR)
-    rms = librosa.feature.rms(S=librosa.stft(ad_peak))
-    rms = rms[0]
-    onset_backtrack = librosa.onset.onset_backtrack(onset_detect, rms)
-    times = librosa.times_like(o_env, sr=SR)
+    S = np.abs(librosa.stft(y=AUDIO))
 
-    return times[onset_backtrack]
+    onset_strenght = librosa.onset.onset_strength(S=S, sr=SR)
+    onset_raw = librosa.onset.onset_detect(onset_envelope=onset_strenght, sr=SR)
+    rms = librosa.feature.rms(S=S)
+    onset_bt = librosa.onset.onset_backtrack(onset_raw, rms[0])
 
+    ONSET_FRAMES = librosa.frames_to_time(onset_bt, sr=SR)
+
+    return ONSET_FRAMES
 
 
-def get_onsets(MUSICTESTPATH, onset_frames=None,SR=44100):
-    # AUDIO = rmsNorm(AUDIO, -50)
-    y, sr = librosa.load(MUSICTESTPATH, sr=16000)
+
+def get_onsets(AUDIO, onset_frames=None,SR=44100):
+     # AUDIO = rmsNorm(AUDIO, -50)
     if onset_frames is None:
-        ONSET_TIMES = onsets(y, sr)
+        ONSET_FRAMES = onsets(AUDIO, SR)
     else:
-        ONSET_TIMES = onset_frames
+        ONSET_FRAMES = onset_frames
+    # ONSET_FRAMES = cqt_onsets(AUDIO, SR)
+    ONSET_FRAMES_AS_SAMPLE_RATE = []
+    MIN_AUDIO_WINDOW_SIZE = 0.1  # 0.1 seconds / 100ms
 
-    #filter only unique values
-    ONSET_TIMES = list(set(ONSET_TIMES))
-    ONSET_FRAMES = []
-    for onset in ONSET_TIMES:
-        ONSET_FRAMES.append(int(onset * SR))
+    ON_FRAMES = []
+    for i in range(len(ONSET_FRAMES)):
+        """print(
+            f"ONSET_FRAMES[i + 1] - ONSET_FRAMES[i]: {ONSET_FRAMES[i + 1] - ONSET_FRAMES[i]}"
+        )"""
+        if i + 1 == len(ONSET_FRAMES):
+            ON_FRAMES.append(ONSET_FRAMES[i])
+            ONSET_FRAMES_AS_SAMPLE_RATE.append(int(ONSET_FRAMES[i] * SR))
+            break
+        if ONSET_FRAMES[i + 1] - ONSET_FRAMES[i] >= MIN_AUDIO_WINDOW_SIZE:
+            ON_FRAMES.append(ONSET_FRAMES[i])
+            ONSET_FRAMES_AS_SAMPLE_RATE.append(int(ONSET_FRAMES[i] * SR))
 
-    return ONSET_TIMES, ONSET_FRAMES
+    ONSET_FRAMES_AS_SAMPLE_RATE = np.array(ONSET_FRAMES_AS_SAMPLE_RATE)
+    ON_FRAMES = np.array(ON_FRAMES)
+
+    return ON_FRAMES, ONSET_FRAMES_AS_SAMPLE_RATE

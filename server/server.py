@@ -33,7 +33,7 @@ def predict(dataJson):
     MUSICTESTPATH = "output.wav"
     SR = 44100
     AUDIO, _ = load(MUSICTESTPATH, sample_rate=SR)
-    ONSETS = get_onsets(MUSICTESTPATH)
+    ONSETS = get_onsets(AUDIO)
     onsets_to_audio(AUDIO, ONSETS[0], SR)
 
     preds = AWA(
@@ -43,7 +43,7 @@ def predict(dataJson):
         MaxSteps=None,
         model=dataJson["model"],
     )
-    print(preds)
+
     return preds
 
 

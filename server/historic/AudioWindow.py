@@ -30,32 +30,9 @@ def macro_f1(y, y_hat, thresh=0.5):
     return macro_f1
 
 
-@tf.function
-def macro_soft_f1(y, y_hat):
-    """Compute the macro soft F1-score as a cost (average 1 - soft-F1 across all labels).
-    Use probability values instead of binary predictions.
-
-    Args:
-        y (int32 Tensor): targets array of shape (BATCH_SIZE, N_LABELS)
-        y_hat (float32 Tensor): probability matrix from forward propagation of shape (BATCH_SIZE, N_LABELS)
-
-    Returns:
-        cost (scalar Tensor): value of the cost function for the batch
-    """
-    y = tf.cast(y, tf.float32)
-    y_hat = tf.cast(y_hat, tf.float32)
-    tp = tf.reduce_sum(y_hat * y, axis=0)
-    fp = tf.reduce_sum(y_hat * (1 - y), axis=0)
-    fn = tf.reduce_sum((1 - y_hat) * y, axis=0)
-    soft_f1 = 2 * tp / (2 * tp + fn + fp + 1e-16)
-    cost = 1 - soft_f1  # reduce 1 - soft-f1 in order to increase soft-f1
-    macro_cost = tf.reduce_mean(cost)  # average on all labels
-    return macro_cost
-
-
 LABELS = np.load("all_labels.npy")
 # Load the model with custom loss function
-with custom_object_scope({"macro_soft_f1": macro_soft_f1, "macro_f1": macro_f1}):
+with custom_object_scope({ "macro_f1": macro_f1}):
     model_chords = load_model("Models/model_chords2.h5")
     model_notes = load_model("Models/model_notes2.h5")
     model_mix = load_model("Models/model_mix2.h5")
@@ -140,8 +117,8 @@ def AWA(
 ):
     ONSETS_SEC, ONSETS_SR = ONSETS
     AUDIO_SECS = len(AUDIO) / SR
-    AUDIO_WIN_ACCOMULATE_LEN = int(0.4 * SR)
-    AUDIO_WIN_ACCOMULATE_LEN_SEC = 0.4  # 0.4 seconds
+    AUDIO_WIN_ACCOMULATE_LEN = int(0.1 * SR)
+    AUDIO_WIN_ACCOMULATE_LEN_SEC = 0.1  # 0.4 seconds
     """ The AUDIO_WIN_ACCOMULATE_LEN is the amount of audio that 
     will be acomulated over time with the new audio batches coming from the websocket"""
     MAX_AUDIO_WINDOW_SIZE = int(2.5 * SR)  # 2.5 seconds
