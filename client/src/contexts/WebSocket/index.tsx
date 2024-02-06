@@ -40,8 +40,7 @@ export const WebsocketProvider = ({ children }: WebsocketProviderI) => {
 	const [isConnected, setIsConnected] = useState(false)
 	const [kPaths, setkPaths] = useState<KpredI[]>([]);
 	const [preds, setPreds] = useState<any>();
-	const [messageSent, setMessageSent] = useState(false)
-	const [messageReceived, setMessageReceived] = useState(false)
+
 
 
 	useEffect(() => {
@@ -65,9 +64,12 @@ export const WebsocketProvider = ({ children }: WebsocketProviderI) => {
 	const checkIfReceivedMessage = (webSocket: Websocket) =>
 		new Promise(async (resolve: (res: string) => void, reject: (res: string) => void) => {
 			webSocket.addEventListener(WebsocketEvent.message, (event, m) => {
-				setMessageReceived(true)
-				setMessageSent(false)
-				resolve("success");
+				if (JSON.parse(m.data)["type"] != 'error') {
+					resolve("success");
+				}
+				else {
+					reject("error");
+				}
 			});
 		});
 
@@ -145,10 +147,7 @@ export const WebsocketProvider = ({ children }: WebsocketProviderI) => {
 			});
 			ws.current.send(msg);
 		}
-
-		setMessageSent(true)
-		setMessageReceived(false)
-		HotToastPromise("Gerando Tablatura...", "Tablatura gerada!", "Erro ao gerar tablatura!", checkIfReceivedMessage(ws.current))
+		HotToastPromise("Gerando Tablatura...", "Tablatura gerada!", "Não foram encontradas notas.", checkIfReceivedMessage(ws.current))
 	}
 
 	return (

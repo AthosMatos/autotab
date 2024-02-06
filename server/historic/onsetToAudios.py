@@ -7,10 +7,10 @@ def onsets_to_audio(AUDIO, ONSETS, SR):
 
     for i in range(len(ONSETS)):
         if i + 1 == len(ONSETS):
-            outputaudio.extend(AUDIO[ONSETS[i] :])
+            outputaudio.extend(AUDIO[int(ONSETS[i]*SR) :])
             break
 
-        outputaudio.extend(AUDIO[ONSETS[i] : ONSETS[i + 1]])
+        outputaudio.extend(AUDIO[int(ONSETS[i]*SR) : int(ONSETS[i+1]*SR)])
         # add 0.2 seconds of silence
         if i < len(ONSETS) - 1:
             outputaudio.extend(np.zeros(int(0.5 * SR)))

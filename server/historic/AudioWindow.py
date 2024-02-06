@@ -136,6 +136,7 @@ def AWA(
     MaxSteps=None,
     model="chords" or "notes" or "mix",
     gen_audio=False,
+    callback=None,
 ):
     ONSETS_SEC, ONSETS_SR = ONSETS
     AUDIO_SECS = len(AUDIO) / SR
@@ -208,16 +209,6 @@ def AWA(
                     audio_w_sec_start,
                     audio_w_sec_end,
                 )
-
-            """ print()
-            print(f"|| {preds} ||")
-            if giveMoreAudioContext:
-                print(f"|| {audio_w_sec_start:.2f} - {audio_w_sec_end+0.6:.2f} ||")
-            else:
-                print(f"|| {audio_w_sec_start:.2f} - {audio_w_sec_end:.2f} ||")
-            print(f"|| {general_confidence:.2f}% ||")
-            for note, confidence in notes_preds:
-                print(f"|| {note} - {confidence:.2f}% ||") """
 
             if limitHit == True:
                 break

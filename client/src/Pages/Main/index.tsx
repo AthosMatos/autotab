@@ -8,14 +8,15 @@ import { useComponentViewContext } from "../../contexts/ComponentView"
 import { useTabContext } from "../../contexts/Tab"
 import { ControlBar } from "../../components/ControlBar"
 import { useMediaRecoderContext } from "../../contexts/Recorder/useMediaRecorder"
-
+import styled from "styled-components"
+import { AppLogo } from "../../components/Logo"
 
 
 const MainPage = () => {
     const { showNotesFretView, showTab } = useComponentViewContext()
     const { updatePredictSpeed } = usePlaybackContext()
     const { connect, send } = useWebSocket()
-    const { functions, states } = useMediaRecoderContext()
+    const { states } = useMediaRecoderContext()
     const { k, fretConfort, model, slideTolerance } = useTabContext()
 
     useEffect(() => {
@@ -29,13 +30,15 @@ const MainPage = () => {
     }, [states.audioForServer])
 
     useEffect(() => {
-        connect('ws://localhost:50007')
+        connect('ws://localhost:8080')
         updatePredictSpeed(500)
     }, [])
 
     return (
         <MainContainer>
+            <AppLogo />
             <ComponentWrapper>
+
                 {showNotesFretView && <NotesFretView width={1350} />}
                 {showTab && <Tablature width={1350} />}
             </ComponentWrapper>

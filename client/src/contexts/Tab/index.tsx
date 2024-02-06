@@ -44,7 +44,7 @@ export const TabProvider = (props: any) => {
 
     useEffect(() => {
         if (kPaths && kPaths.length) {
-            //console.log(kPaths)
+            /*  console.log(kPaths) */
             setNotesPreds(kPaths[index].path)
             setWeight(kPaths[index].weight)
         }

@@ -2,8 +2,8 @@ import asyncio
 import websockets
 import numpy as np
 from utils.load_prepare import load
-from historic.getOnsets import get_onsets
-from historic.AudioWindow import AWA
+from historic.getOnsets2 import get_onsets
+from historic.AWA2 import AWA
 from historic.onsetToAudios import onsets_to_audio
 import json
 from scipy.io import wavfile
@@ -33,17 +33,17 @@ def predict(dataJson):
     MUSICTESTPATH = "output.wav"
     SR = 44100
     AUDIO, _ = load(MUSICTESTPATH, sample_rate=SR)
-    ONSETS_SECS, ONSETS_SRS = get_onsets(AUDIO, SR)
-    onsets_to_audio(AUDIO, ONSETS_SRS, SR)
+    ONSET_TIMES = get_onsets(MUSICTESTPATH)
+    onsets_to_audio(AUDIO, ONSET_TIMES, SR)
+
     preds = AWA(
         AUDIO,
         SR,
-        (ONSETS_SECS, ONSETS_SRS),
+        ONSET_TIMES,
         MaxSteps=None,
         model=dataJson["model"],
-        gen_audio=False,
     )
-
+    print(preds)
     return preds
 
 
@@ -77,6 +77,10 @@ async def handle_websocket(websocket, path):
                 if dataJson["type"] == "predict":
                     handle_audio(dataJson)
                     preds = predict(dataJson)
+                    if len(preds) == 0:
+                        res = '{ "type": "error", "message": "Não foram encontradas notas." }'
+                        await websocket.send(res)
+                        continue
                     paths = get_paths(preds, dataJson)
 
                     res = (
@@ -95,6 +99,10 @@ async def handle_websocket(websocket, path):
                     await websocket.send(res)
                 elif dataJson["type"] == "repredict":
                     preds = predict(dataJson)
+                    if len(preds) == 0:
+                        res = '{ "type": "error", "message": "Não foram encontradas notas." }'
+                        await websocket.send(res)
+                        continue
                     paths = get_paths(preds, dataJson)
 
                     res = (
