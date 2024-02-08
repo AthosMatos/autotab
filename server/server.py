@@ -7,7 +7,7 @@ from historic.AudioWindow import AWA
 from historic.onsetToAudios import onsets_to_audio
 import json
 from scipy.io import wavfile
-from tabGen import gen_paths
+from TabGenV2 import gen_paths
 
 
 def handle_audio(dataJson):
@@ -51,9 +51,8 @@ def get_paths(preds, dataJson):
     paths = gen_paths(
         preds,
         k=dataJson["k"],
-        options={
-            "fret_confort": dataJson["fretConfort"],
-            "slide_tolerance": dataJson["slideTolerance"],
+        parametros={
+            "casa_conforto": dataJson["fretConfort"],
         },
     )
 
@@ -120,6 +119,6 @@ async def handle_websocket(websocket, path):
 
 
 #start_server = websockets.serve(handle_websocket, "0.0.0.0", 80, max_size=None)
-start_server = websockets.serve(handle_websocket, "0.0.0.0", 80, max_size=None)
+start_server = websockets.serve(handle_websocket, "0.0.0.0", 8080, max_size=None)
 asyncio.get_event_loop().run_until_complete(start_server)
 asyncio.get_event_loop().run_forever()

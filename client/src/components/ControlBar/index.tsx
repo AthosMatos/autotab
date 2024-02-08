@@ -104,44 +104,33 @@ export const ControlBar = () => {
 
             <ButtonsContainer section="Tablatura">
 
-                <VerticalWrapper>
-                    <CustomInput
-                        value={fretConfort}
-                        onChange={(e, v) => {
-                            //console.log(v)
-                            if (v == undefined) return
-                            updateInputs({ fretConfort: v })
-                        }}
-                        label="Casa de Conforto"
-                        max={frets}
-                        min={0}
-                    />
-                    <CustomInput
-                        value={slideTolerance}
-                        onChange={(e, v) => {
-                            if (v == undefined) return
-                            updateInputs({ slideTolerance: v })
-                        }}
-                        label="Tolerância de Slide"
-                        max={frets}
-                        min={0}
-                    />
 
-                </VerticalWrapper>
-                <VerticalWrapper>
+                <CustomInput
+                    value={fretConfort}
+                    onChange={(e, v) => {
+                        //console.log(v)
+                        if (v == undefined) return
+                        updateInputs({ fretConfort: v })
+                    }}
+                    label="Casa de Conforto"
+                    max={frets}
+                    min={0}
+                />
+                <CustomInput
+                    value={k}
+                    onChange={(e, v) => {
+                        if (v == undefined) return
+                        updateInputs({ k: v })
+                    }}
+                    label="K"
+                    max={999}
+                    min={1}
+                />
 
-                    <CustomInput
-                        value={k}
-                        onChange={(e, v) => {
-                            if (v == undefined) return
-                            updateInputs({ k: v })
-                        }}
-                        label="K"
-                        max={frets}
-                        min={1}
-                    />
-                    <ToogleModelButton />
-                </VerticalWrapper>
+
+
+
+                <ToogleModelButton />
 
 
             </ButtonsContainer>

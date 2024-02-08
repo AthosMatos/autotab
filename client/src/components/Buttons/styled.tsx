@@ -21,6 +21,7 @@ const BC = styled.div<{ gap?: number }>`
     //border: 1px solid black;
     //background-color: #3f3f3f50;
     border-radius: 10px;
+    flex-wrap: wrap;
 `
 
 export const ButtonsContainer = (props: ButtonsContainerProps) => {

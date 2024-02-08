@@ -5,6 +5,7 @@ import { useTabContext } from "../../../contexts/Tab";
 
 const Container = styled.div`
         display: flex;
+        flex: 1;
         gap: 10px;
         flex-direction: column;
     `
