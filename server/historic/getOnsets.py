@@ -1,4 +1,5 @@
 import numpy as np
+from utils.rmsNorm import rmsNorm
 import librosa
 
 
@@ -17,12 +18,10 @@ def onsets(AUDIO, SR):
 
 
 def get_onsets(AUDIO, onset_frames=None,SR=44100):
-     # AUDIO = rmsNorm(AUDIO, -50)
     if onset_frames is None:
         ONSET_FRAMES = onsets(AUDIO, SR)
     else:
         ONSET_FRAMES = onset_frames
-    # ONSET_FRAMES = cqt_onsets(AUDIO, SR)
     ONSET_FRAMES_AS_SAMPLE_RATE = []
     MIN_AUDIO_WINDOW_SIZE = 0.1  # 0.1 seconds / 100ms
 
