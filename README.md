@@ -1,22 +1,45 @@
 # AutoTab
 ## Trabalho de conclusão de curso - Athos Matos
 
+### Resumo
+Este Trabalho apresenta o desenvolvimento de um aplicativo visado para a transcrição
+automática de sons de guitarra e violão em tablaturas. O sistema é dividido em duas partes
+principais: um cliente web, desenvolvido utilizando ReactJS, e um servidor operando
+em segundo plano via WebSocket. O cliente web oferece uma interface intuitiva para a
+interação com os módulos de processamento localizados no servidor, além de proporcionar
+uma visualização detalhada das informações processadas, como tablaturas e as notas que
+as compõem.
+O servidor encapsula os módulos de processamento essenciais para a transcrição musical.
+Entre eles, destacam-se três Redes Neurais Convolucionais (CNNs) especializadas na
+identificação de elementos musicais. Duas dessas redes são dedicadas, respectivamente, a
+notas e acordes, enquanto uma terceira, de caráter mais generalista, é capaz de abranger
+ambas as situações. O módulo de criação de janelas de áudio - denominado pelo autor
+como Audio Window Analyser (AWA) - utiliza o método Spectral Flux para detectar onsets
+de áudio, que são então empregados para gerar as janelas de áudio ao serem alimentados
+a rede neural resultam nas notas que compõem o som. Por fim, no módulo de geração das
+tablaturas - TabGen - é utilizado o algoritmo de Yen para encontrar os k caminhos mais
+curtos, a partir das notas identificadas, oferecendo transcrições para todos os gostos.
+
+
 ### Abstract
-This monograph proposes a tool capable of identifying musical notes in audio tracks of
-guitar and guitar and providing the results in tablature format. The tool consists of various
-modules distributed between a client and a server where the client is a web application
-aimed at facilitating the tool’s use. Furthermore, the application houses the transcription
-module responsible for generating the tablature. The server encompasses the auditory event
-detection algorithm and two Convolutional Neural Networks (CNNs) trained to identify
-individual notes or sound harmonies such as musical chords. Utilizing the identifying
-capability of CNNs and working in conjunction with pre and post-processing algorithms,
-the proposed tool has shown itself capable of accurately identifying notes and chords where
-the sound is clear, clean (without effects such as reverb, delay, distortion, etc.), and
-well-spaced. This work delves into libraries such as librosa, scipy, and tensorflow, which
-were key components for the tool’s performance and quality. This monograph also serves as
-an analytical guide on how to handle acoustic signals and generate data from them, while
-highlighting the limitations and shortcomings of the proposed architecture, thus enabling
-the creation of other musical transcription tools with better efficiency and capability.
+This work presents the development of an application aimed at the automatic transcription
+of guitar and violão (a type of Portuguese guitar) sounds into tablatures. The system
+is divided into two main parts: a web client, developed using ReactJS, and a server
+operating in the background via WebSocket. The web client offers an intuitive interface
+for interaction with the processing modules located on the server, in addition to providing
+a detailed visualization of the processed information, such as tablatures and the notes
+they comprise.
+The server encapsulates the essential processing modules for musical transcription. Among
+these, three Convolutional Neural Networks (CNNs) specialized in the identification of
+musical elements stand out. Two of these networks are dedicated, respectively, to notes
+and chords, while a third, more generalist in nature, is capable of covering both situations.
+The audio window creation module - named by the author as Audio Window Analyser
+(AWA) - uses the Spectral Flux method to detect audio onsets, which are then used to
+generate audio windows that, when fed to the neural network, result in the notes that make
+up the sound. Finally, in the tablature generation module - TabGen - Yen’s algorithm is
+used to find the k shortest paths, from the identified notes, offering transcriptions for all
+tastes.
+
 
 ![AutoTabImage - Ooh la la - Faces](https://github.com/AthosMatos/autotab/assets/74662402/d1bac0b8-6406-487c-81ec-c2a3d48027a7)
 
