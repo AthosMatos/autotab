@@ -7,7 +7,7 @@ from historic.AudioWindow import AWA
 from historic.onsetToAudios import onsets_to_audio
 import json
 from scipy.io import wavfile
-from TabGenV2 import gen_paths
+from TabGenV3 import gen_paths
 
 
 def handle_audio(dataJson):
@@ -43,11 +43,12 @@ def predict(dataJson):
         MaxSteps=None,
         model=dataJson["model"],
     )
-
+    print(preds)
     return preds
 
 
 def get_paths(preds, dataJson):
+    print(dataJson["k"])
     paths = gen_paths(
         preds,
         k=dataJson["k"],
@@ -55,7 +56,7 @@ def get_paths(preds, dataJson):
             "casa_conforto": dataJson["fretConfort"],
         },
     )
-
+    print(len(paths))
     return paths
 
 

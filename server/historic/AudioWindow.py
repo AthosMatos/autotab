@@ -29,10 +29,32 @@ def macro_f1(y, y_hat, thresh=0.5):
     macro_f1 = tf.reduce_mean(f1)
     return macro_f1
 
+@tf.function
+def macro_soft_f1(y, y_hat):
+    """Compute the macro soft F1-score as a cost (average 1 - soft-F1 across all labels).
+    Use probability values instead of binary predictions.
+    
+    Args:
+        y (int32 Tensor): targets array of shape (BATCH_SIZE, N_LABELS)
+        y_hat (float32 Tensor): probability matrix from forward propagation of shape (BATCH_SIZE, N_LABELS)
+        
+    Returns:
+        cost (scalar Tensor): value of the cost function for the batch
+    """
+    y = tf.cast(y, tf.float32)
+    y_hat = tf.cast(y_hat, tf.float32)
+    tp = tf.reduce_sum(y_hat * y, axis=0)
+    fp = tf.reduce_sum(y_hat * (1 - y), axis=0)
+    fn = tf.reduce_sum((1 - y_hat) * y, axis=0)
+    soft_f1 = 2*tp / (2*tp + fn + fp + 1e-16)
+    cost = 1 - soft_f1 # reduce 1 - soft-f1 in order to increase soft-f1
+    macro_cost = tf.reduce_mean(cost) # average on all labels
+    return macro_cost
+
 
 LABELS = np.load("all_labels.npy")
 # Load the model with custom loss function
-with custom_object_scope({ "macro_f1": macro_f1}):
+with custom_object_scope({'macro_f1': macro_f1,'macro_soft_f1': macro_soft_f1}):
     model_chords = load_model("Models/model_chords2.h5")
     model_notes = load_model("Models/model_notes2.h5")
     model_mix = load_model("Models/model_mix2.h5")
@@ -52,9 +74,14 @@ def predict_notes(audio_window, model):
                 notes_preds.append((note, confidence * 100))
                 sum_of_confidence += confidence * 100
 
+        #sort the notes by confidence from highest to lowest
+        notes_preds = sorted(notes_preds, key=lambda x: x[1], reverse=True)
+        
         len_of_preds = len(notes_preds)
         if len_of_preds == 0:
             len_of_preds = 1
+        if len_of_preds > 6:
+            notes_preds = notes_preds[:6]
         "get the sum of all confiedences"
         sum_of_confidence = (sum_of_confidence * 100) / (6 * 100)
         return notes_preds, sum_of_confidence

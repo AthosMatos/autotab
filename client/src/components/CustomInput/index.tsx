@@ -63,7 +63,7 @@ export const CustomInput = (props: CustomInputI) => {
       <Label>{label}</Label>
       <NumberInput
         value={value}
-        onChange={onChange} aria-label={label} min={min} max={max} />
+        onChange={onChange as any} aria-label={label} min={min} max={max} />
     </InputWrapper>
   )
 }

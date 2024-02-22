@@ -103,8 +103,6 @@ export const ControlBar = () => {
             </ButtonsContainer>
 
             <ButtonsContainer section="Tablatura">
-
-
                 <CustomInput
                     value={fretConfort}
                     onChange={(e, v) => {
@@ -126,18 +124,35 @@ export const ControlBar = () => {
                     max={999}
                     min={1}
                 />
-
-
-
-
                 <ToogleModelButton />
+                <div style={{
+                    display: 'flex',
+                    flex: 1,
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    alignItems: 'flex-start',
+                    gap: '10px'
+                }}>
+                    <p style={{
+                        margin: '0px',
+                        color: Colors.grey,
+                        fontWeight: 'bold'
+                    }}>Funções</p>
+                    <div style={{
+                        display: 'flex',
+                        gap: '10px',
+                        width: '100%',
+                    }}>
+                        <UpdateTabButton />
+                        <RepredictTabButton />
+                    </div>
+
+                </div>
 
 
             </ButtonsContainer>
-            <ButtonsContainer section="Tab Funcs">
-                <UpdateTabButton />
-                <RepredictTabButton />
-            </ButtonsContainer>
+
+
             <ButtonsContainer section="Notes" >
                 <NotesView />
             </ButtonsContainer>

@@ -1,10 +1,11 @@
 import heapq
 from utils.notes import genNotes
+import json
 
 notes, str_notes = genNotes()  # TUNNING=["E2", "A2", "D3", "G3", "B3", "E4"]
 
-""" for nt in str_notes:
-    print(nt) """
+for nt in notes:
+    print(nt)
 
 
 def has_next_note_in_seq(indexOfNote, group_note_in_seq, note_in_list_comp):
@@ -131,7 +132,7 @@ def connect_chords(
 def gen_clean_graph(
     notesInSequence: list,
     print_graph=False,
-    options={"fret_confort": 5, "slide_tolerance": 0},
+    options="default",
 ):
     graph = {}
 
@@ -174,29 +175,28 @@ def gen_clean_graph(
 
 
 def calculate_playability_distance(
-    fret_j, fret_k, string_i, string_i2, options: dict, isChord=False
+    fret_j, fret_k, string_i, string_i2, options=str | dict, isChord=False
 ):
-    fret_distance = abs(fret_k - fret_j)
-    string_distance = abs(string_i2 - string_i)
-    
-    """ if (fret_k - fret_j) < 0:
-        fret_distance += abs(fret_k - fret_j) """
-        
-    if fret_k == 0:
-            fret_distance = 0
-   
-    
+    fret_distance = fret_k - fret_j
+
+    string_distance = string_i2 - string_i
+
     confort_fret = 0
     slide_tolerance = 0
 
-    if options["fret_confort"]:
-        confort_fret = abs(options["fret_confort"] - fret_k)       
-
-    if options["slide_tolerance"] and not isChord:
-        slide_tolerance = options["slide_tolerance"]
-
-    fret_distance = (fret_distance + confort_fret) - slide_tolerance
-    playability_distance = fret_distance + string_distance + 1  
+    if options == "default":
+        if fret_k == 0:
+            fret_distance = 0
+        playability_distance = fret_distance + string_distance + 1
+    elif isinstance(options, dict):
+        if options["casa_conforto"]:
+            confort_fret = options["casa_conforto"] - fret_j
+        else:
+            if fret_k == 0:
+                fret_distance = 0
+        
+        fret_distance = abs(fret_distance - confort_fret - slide_tolerance)
+        playability_distance = fret_distance + string_distance + 1
 
     return playability_distance
 
@@ -256,7 +256,7 @@ def block_edges(graph, path):
             del graph[node1][node2]
 
 
-def custom_k_shortest(graph, seq, k):
+def custom_k_shortest(graph, seq, cut_limit, k):
     k_notes_postitions = []
     for _ in range(k):
         start_nodes = getNames(seq[0][0], graph, len(seq))
@@ -283,8 +283,8 @@ def custom_k_shortest(graph, seq, k):
 
         # sort paths by distance
 
-        # paths.sort(key=lambda x: x[0])
-        # paths = paths[:cut_limit]
+        paths.sort(key=lambda x: x[0])
+        paths = paths[:cut_limit]
 
         # print("paths: ", paths)
 
@@ -323,23 +323,23 @@ def custom_k_shortest(graph, seq, k):
             if len(notes_postitions) == len(seq):
                 k_notes_postitions.append({"weight": path[0], "path": notes_postitions})
 
-        """ if len(cut_notes_postitions):
-            k_notes_postitions.append(cut_notes_postitions) """
-    k_notes_postitions = sorted(k_notes_postitions, key=lambda x: x["weight"])
     return k_notes_postitions
 
 
 def gen_paths(
-    seq, k, options={"fret_confort": 5, "slide_tolerance": 0}
-):  # options={"fret_confort": 0, "slide_tolerance": 2}
+    seq, k,parametros={"casa_conforto": 0}
+):  
     for c in seq:
         for n in c:
             if n not in notes:
                 print("note not in notes: ", n)
                 return
 
-    graph = gen_clean_graph(seq, print_graph=False, options=options)
+    graph = gen_clean_graph(seq, print_graph=True, options=parametros)
 
-    k_notes_postitions = custom_k_shortest(graph, seq, k)
-
+    cut_limit = 3
+  
+    k_notes_postitions = custom_k_shortest(graph, seq, cut_limit, k)
+   
     return k_notes_postitions
+
